@@ -192,7 +192,7 @@ export const useCatStore = defineStore('cat', () => {
     const nextUnlockedMemories = getUnlockedMemoryIds(currentLevelNumber.value);
 
     unlockedLevels.value = Array.from(new Set([...unlockedLevels.value, ...nextUnlockedLevels]));
-    unlockedMemoryIds.value = nextUnlockedMemories;
+    unlockedMemoryIds.value = Array.from(new Set([...unlockedMemoryIds.value, ...nextUnlockedMemories]));
   };
 
   const applyServerProfile = (profile, { force = false } = {}) => {
