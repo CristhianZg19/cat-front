@@ -1,5 +1,5 @@
 <template>
-  <section ref="stageRef" class="cat-stage" aria-label="Luna">
+  <section ref="stageRef" class="cat-stage" aria-label="Luna" :aria-busy="isCatImageLoading">
     <div
       class="cat-touch-zone"
       @touchstart="handleTouchStart"
@@ -21,6 +21,8 @@
               src="../assets/cat-sleeping.png"
               alt="Luna dormida"
               draggable="false"
+              @load="markCatImageLoaded('sleeping')"
+              @error="markCatImageLoaded('sleeping')"
             />
             <img
               ref="awakeImageRef"
@@ -28,11 +30,20 @@
               src="../assets/cat-awake.png"
               alt="Luna despierta"
               draggable="false"
+              @load="markCatImageLoaded('awake')"
+              @error="markCatImageLoaded('awake')"
             />
           </div>
         </div>
       </div>
     </div>
+
+    <Transition name="cat-loader">
+      <div v-if="isCatImageLoading" class="cat-loader" role="status" aria-live="polite">
+        <span class="cat-loader__spinner" aria-hidden="true"></span>
+        <p>Ten paciencia, tu gatita Luna está cargando...</p>
+      </div>
+    </Transition>
 
     <FloatingHearts :hearts="hearts" />
   </section>
@@ -55,9 +66,11 @@ const pulseRef = ref(null);
 const sleepingImageRef = ref(null);
 const awakeImageRef = ref(null);
 const hearts = ref([]);
+const isCatImageLoading = ref(true);
 
 const STROKE_DISTANCE_REQUIRED = 26;
 const STROKE_INTERVAL_REQUIRED = 90;
+const REQUIRED_CAT_IMAGES = 2;
 const HEART_COLORS = ['#f06f9d', '#ff9fbd', '#d85f96', '#f6b0c8'];
 const CAT_HIT_ZONES = [
   { cx: 0.25, cy: 0.38, rx: 0.17, ry: 0.22 },
@@ -78,6 +91,25 @@ let heartId = 0;
 let breathingTween = null;
 let blinkTimer = null;
 let lastPurrAt = 0;
+const loadedCatImages = new Set();
+
+const markCatImageLoaded = (imageKey) => {
+  loadedCatImages.add(imageKey);
+
+  if (loadedCatImages.size >= REQUIRED_CAT_IMAGES) {
+    isCatImageLoading.value = false;
+  }
+};
+
+const syncCachedCatImageLoading = () => {
+  if (sleepingImageRef.value?.complete) {
+    markCatImageLoaded('sleeping');
+  }
+
+  if (awakeImageRef.value?.complete) {
+    markCatImageLoaded('awake');
+  }
+};
 
 const getTouchPoint = (event) => {
   const touch = event.touches?.[0] ?? event.changedTouches?.[0];
@@ -550,9 +582,11 @@ const handlePointerEnd = (event) => {
   endStroke();
 };
 
-onMounted(() => {
+onMounted(async () => {
   gsap.set(sleepingImageRef.value, { autoAlpha: store.isAwake ? 0 : 1 });
   gsap.set(awakeImageRef.value, { autoAlpha: store.isAwake ? 1 : 0 });
+  await nextTick();
+  syncCachedCatImageLoading();
 
   if (store.isAwake) {
     scheduleBlink();
@@ -635,6 +669,68 @@ onBeforeUnmount(() => {
 
 .cat-image--awake {
   z-index: 1;
+}
+
+.cat-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 251, 0.94), rgba(255, 226, 242, 0.9));
+  box-shadow:
+    inset 0 0 0 1px rgba(218, 84, 146, 0.16),
+    0 18px 34px rgba(188, 74, 130, 0.16);
+  color: #8d315c;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.cat-loader p {
+  max-width: 250px;
+  margin: 0;
+  font-size: clamp(0.95rem, 2.8vw, 1.08rem);
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.cat-loader__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(218, 84, 146, 0.2);
+  border-top-color: #ec5c9e;
+  border-radius: 999px;
+  animation: cat-loader-spin 820ms linear infinite;
+}
+
+.cat-loader-enter-active,
+.cat-loader-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.cat-loader-enter-from,
+.cat-loader-leave-to {
+  opacity: 0;
+  transform: scale(0.985);
+}
+
+@keyframes cat-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-loader__spinner {
+    animation: none;
+  }
 }
 
 @media (max-width: 560px) {
