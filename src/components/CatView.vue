@@ -70,6 +70,8 @@ const CAT_HIT_ZONES = [
 let isStroking = false;
 let activePointerId = null;
 let lastPoint = null;
+let touchStartPoint = null;
+let isTouchScrollGesture = false;
 let strokeDistance = 0;
 let lastPetAt = 0;
 let heartId = 0;
@@ -486,16 +488,39 @@ const endStroke = () => {
 };
 
 const handleTouchStart = (event) => {
-  event.preventDefault();
-  beginStroke(getTouchPoint(event));
+  const point = getTouchPoint(event);
+
+  touchStartPoint = point;
+  isTouchScrollGesture = false;
+  beginStroke(point);
 };
 
 const handleTouchMove = (event) => {
-  event.preventDefault();
-  moveStroke(getTouchPoint(event));
+  const point = getTouchPoint(event);
+
+  if (!point || !touchStartPoint || isTouchScrollGesture || !isStroking) {
+    return;
+  }
+
+  const deltaX = Math.abs(point.x - touchStartPoint.x);
+  const deltaY = Math.abs(point.y - touchStartPoint.y);
+
+  if (deltaY > 10 && deltaY > deltaX * 1.25) {
+    isTouchScrollGesture = true;
+    endStroke();
+    return;
+  }
+
+  if (deltaX > 6 || deltaY > 6) {
+    event.preventDefault();
+  }
+
+  moveStroke(point);
 };
 
 const handleTouchEnd = () => {
+  touchStartPoint = null;
+  isTouchScrollGesture = false;
   endStroke();
 };
 
@@ -561,7 +586,7 @@ onBeforeUnmount(() => {
   width: min(88vw, 760px);
   aspect-ratio: 1280 / 921;
   margin: 0 auto;
-  touch-action: none;
+  touch-action: pan-y;
   isolation: isolate;
 }
 
@@ -575,6 +600,7 @@ onBeforeUnmount(() => {
 
 .cat-touch-zone {
   cursor: grab;
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;

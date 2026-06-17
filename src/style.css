@@ -27,7 +27,8 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 button,
@@ -46,8 +47,7 @@ select {
   justify-items: center;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   padding: max(26px, env(safe-area-inset-top)) 14px max(30px, env(safe-area-inset-bottom));
   background:
     linear-gradient(145deg, rgba(255, 219, 237, 0.96), rgba(255, 241, 248, 0.98) 44%, rgba(237, 226, 255, 0.9)),
