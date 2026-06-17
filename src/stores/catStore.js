@@ -464,13 +464,20 @@ export const useCatStore = defineStore('cat', () => {
 
     try {
       const response = await resetLunaProgress({
+        userName: userName.value,
         deviceId: deviceId.value,
       });
 
       applyResetProfile(getResponseProfile(response));
       persist();
       return true;
-    } catch {
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        applyResetProfile();
+        persist();
+        return true;
+      }
+
       return false;
     }
   };
