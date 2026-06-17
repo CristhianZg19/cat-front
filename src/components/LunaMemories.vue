@@ -23,7 +23,7 @@ defineProps({
 <style scoped>
 .memories {
   width: min(560px, calc(100vw - 32px));
-  margin: 12px auto 0;
+  margin: 0 auto;
   padding: 16px;
   border: 1px solid rgba(211, 92, 145, 0.15);
   border-radius: 8px;

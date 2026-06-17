@@ -40,9 +40,12 @@ select {
 .app-shell {
   position: relative;
   display: grid;
+  align-content: center;
+  gap: clamp(24px, 4vh, 36px);
+  isolation: isolate;
+  justify-items: center;
   min-height: 100vh;
   min-height: 100dvh;
-  place-items: center;
   overflow-x: hidden;
   overflow-y: auto;
   padding: max(26px, env(safe-area-inset-top)) 14px max(30px, env(safe-area-inset-bottom));
@@ -53,6 +56,29 @@ select {
   transition: background 700ms ease;
 }
 
+.app-shell::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d85f96' fill-opacity='0.28' transform='rotate(-18 48 48)'%3E%3Cellipse cx='48' cy='58' rx='14' ry='11'/%3E%3Cellipse cx='31' cy='42' rx='7' ry='9'/%3E%3Cellipse cx='44' cy='34' rx='7' ry='10'/%3E%3Cellipse cx='58' cy='34' rx='7' ry='10'/%3E%3Cellipse cx='70' cy='43' rx='7' ry='9'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg width='132' height='132' viewBox='0 0 132 132' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b988ff' fill-opacity='0.18' transform='rotate(16 66 66)'%3E%3Cellipse cx='66' cy='80' rx='16' ry='12'/%3E%3Cellipse cx='46' cy='58' rx='8' ry='10'/%3E%3Cellipse cx='61' cy='48' rx='8' ry='11'/%3E%3Cellipse cx='77' cy='48' rx='8' ry='11'/%3E%3Cellipse cx='91' cy='59' rx='8' ry='10'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:
+    12px 22px,
+    70px 82px;
+  background-size:
+    96px 96px,
+    132px 132px;
+  content: "";
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
 .app-shell--awake {
   background:
     linear-gradient(142deg, rgba(255, 211, 232, 0.97), rgba(255, 241, 249, 0.98) 48%, rgba(235, 224, 255, 0.92)),
@@ -61,13 +87,14 @@ select {
 }
 
 .app-shell--with-hud {
-  padding-top: max(142px, env(safe-area-inset-top));
+  align-content: start;
+  padding-top: max(24px, env(safe-area-inset-top));
 }
 
 .luna-content {
   display: grid;
   width: 100%;
-  gap: 16px;
+  gap: clamp(28px, 4vh, 40px);
   place-items: center;
 }
 
@@ -132,7 +159,7 @@ select {
 .hud-enter-from,
 .hud-leave-to {
   opacity: 0;
-  transform: translate(-50%, -12px);
+  transform: translateY(-12px);
 }
 
 .message-enter-from,
@@ -166,6 +193,10 @@ select {
   .app-shell {
     align-items: center;
     padding-inline: 8px;
+  }
+
+  .app-shell--with-hud {
+    padding-top: max(22px, env(safe-area-inset-top));
   }
 
   .luna-toast-stack {

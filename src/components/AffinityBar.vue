@@ -50,18 +50,16 @@ defineProps({
 
 <style scoped>
 .affinity {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top));
-  left: 50%;
-  z-index: 6;
+  position: relative;
+  z-index: 2;
   width: min(440px, calc(100vw - 32px));
+  margin: 0 auto;
   padding: 16px 18px 15px;
   border: 1px solid rgba(211, 92, 145, 0.18);
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 247, 252, 0.94), rgba(255, 239, 248, 0.9));
   box-shadow: 0 22px 64px rgba(196, 76, 132, 0.16);
-  transform: translateX(-50%);
   backdrop-filter: blur(16px);
 }
 
