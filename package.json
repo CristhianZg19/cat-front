@@ -1,7 +1,7 @@
 {
   "name": "sleepy-cat-front",
   "version": "1.0.0",
-  "description": "Sleepy Cat virtual pet frontend",
+  "description": "Afinidad con Luna virtual pet frontend",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",

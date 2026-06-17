@@ -5,7 +5,12 @@ const catApi = axios.create({
   timeout: 5000,
 });
 
-export const registerCatPet = async () => {
-  const { data } = await catApi.post('/api/cat/pet');
+export const registerLunaUser = async (payload) => {
+  const { data } = await catApi.post('/api/cat/register', payload);
+  return data;
+};
+
+export const registerLunaPet = async (payload) => {
+  const { data } = await catApi.post('/api/cat/pet', payload);
   return data;
 };

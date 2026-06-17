@@ -1,5 +1,5 @@
 <template>
-  <section ref="stageRef" class="cat-stage" aria-label="Sleepy Cat">
+  <section ref="stageRef" class="cat-stage" aria-label="Luna">
     <div
       class="cat-touch-zone"
       @touchstart="handleTouchStart"
@@ -19,14 +19,14 @@
               ref="sleepingImageRef"
               class="cat-image cat-image--sleeping"
               src="../assets/cat-sleeping.png"
-              alt="Sleepy Cat dormido"
+              alt="Luna dormida"
               draggable="false"
             />
             <img
               ref="awakeImageRef"
               class="cat-image cat-image--awake"
               src="../assets/cat-awake.png"
-              alt="Sleepy Cat despierto"
+              alt="Luna despierta"
               draggable="false"
             />
           </div>
@@ -45,7 +45,7 @@ import FloatingHearts from './FloatingHearts.vue';
 import { useCatStore } from '../stores/catStore';
 import { playOptionalSound } from '../services/sound';
 
-const emit = defineEmits(['message', 'achievement']);
+const emit = defineEmits(['message', 'level-up', 'memory']);
 
 const store = useCatStore();
 const stageRef = ref(null);
@@ -340,23 +340,31 @@ const dispatchStoreEvents = (events) => {
       emit('message', event.message);
     }
 
-    if (event.type === 'adopted') {
+    if (event.type === 'bond-complete') {
       createHeartRain();
     }
 
-    if (event.achievement) {
-      emit('achievement', event.achievement.title);
+    if (event.type === 'level-up') {
+      emit('level-up', event.level);
+    }
+
+    if (event.type === 'memory') {
+      emit('memory');
     }
   });
 };
 
 const countPet = (point) => {
+  if (!store.isRegistered) {
+    return;
+  }
+
   createHeart(point);
   vibrateSoftly();
   pulseSatisfaction();
   playPurr();
 
-  const events = store.registerPetInteraction();
+  const events = store.registerAffinityInteraction();
   dispatchStoreEvents(events);
 };
 
@@ -395,6 +403,10 @@ const moveStroke = (point) => {
 };
 
 const endStroke = () => {
+  if (isStroking && lastPoint && strokeDistance >= STROKE_DISTANCE_REQUIRED) {
+    countPet(lastPoint);
+  }
+
   isStroking = false;
   activePointerId = null;
   lastPoint = null;

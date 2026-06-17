@@ -1,6 +1,6 @@
-# Sleepy Cat Frontend
+# Afinidad con Luna Frontend
 
-Vue 3 + Vite virtual pet app.
+Vue 3 + Vite virtual pet app focused on Luna's affinity, memories, and gentle petting.
 
 ## Environment
 
