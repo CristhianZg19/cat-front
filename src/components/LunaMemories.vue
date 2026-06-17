@@ -25,16 +25,16 @@ defineProps({
   width: min(560px, calc(100vw - 32px));
   margin: 12px auto 0;
   padding: 16px;
-  border: 1px solid rgba(108, 59, 82, 0.12);
+  border: 1px solid rgba(211, 92, 145, 0.15);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.68);
-  box-shadow: 0 18px 50px rgba(91, 52, 70, 0.1);
+  background: rgba(255, 246, 251, 0.78);
+  box-shadow: 0 18px 54px rgba(196, 76, 132, 0.13);
   backdrop-filter: blur(14px);
 }
 
 .memories h2 {
   margin: 0 0 12px;
-  color: #2f242c;
+  color: #33212b;
   font-size: 1rem;
   letter-spacing: 0;
 }
@@ -47,18 +47,19 @@ defineProps({
 .memory {
   padding: 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(211, 92, 145, 0.08);
 }
 
 .memory span {
-  color: #8a4662;
+  color: #b34073;
   font-size: 0.75rem;
   font-weight: 800;
 }
 
 .memory p {
   margin: 5px 0 0;
-  color: #4d4048;
+  color: #5b3f4d;
   font-size: 0.9rem;
   line-height: 1.45;
 }

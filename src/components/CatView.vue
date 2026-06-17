@@ -58,7 +58,14 @@ const hearts = ref([]);
 
 const STROKE_DISTANCE_REQUIRED = 26;
 const STROKE_INTERVAL_REQUIRED = 90;
-const HEART_COLORS = ['#e96c74', '#f2a867', '#c75d78', '#76b890'];
+const HEART_COLORS = ['#f06f9d', '#ff9fbd', '#d85f96', '#f6b0c8'];
+const CAT_HIT_ZONES = [
+  { cx: 0.25, cy: 0.38, rx: 0.17, ry: 0.22 },
+  { cx: 0.39, cy: 0.58, rx: 0.24, ry: 0.25 },
+  { cx: 0.64, cy: 0.57, rx: 0.37, ry: 0.27 },
+  { cx: 0.30, cy: 0.73, rx: 0.15, ry: 0.12 },
+  { cx: 0.76, cy: 0.70, rx: 0.20, ry: 0.14 },
+];
 
 let isStroking = false;
 let activePointerId = null;
@@ -90,14 +97,25 @@ const getPointerPoint = (event) => ({
 
 const getDistance = (from, to) => Math.hypot(to.x - from.x, to.y - from.y);
 
-const isPointInsideStage = (point) => {
+const isPointInsideCat = (point) => {
   const rect = stageRef.value?.getBoundingClientRect();
 
   if (!rect) {
     return false;
   }
 
-  return point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom;
+  const normalizedX = (point.x - rect.left) / rect.width;
+  const normalizedY = (point.y - rect.top) / rect.height;
+
+  if (normalizedX < 0 || normalizedX > 1 || normalizedY < 0 || normalizedY > 1) {
+    return false;
+  }
+
+  return CAT_HIT_ZONES.some((zone) => {
+    const dx = (normalizedX - zone.cx) / zone.rx;
+    const dy = (normalizedY - zone.cy) / zone.ry;
+    return dx * dx + dy * dy <= 1;
+  });
 };
 
 const createHeart = (point, options = {}) => {
@@ -177,10 +195,10 @@ const applyFollow = (point) => {
   const vertical = Math.max(-1, Math.min(1, (point.y - (rect.top + rect.height / 2)) / (rect.height / 2)));
 
   gsap.to(followRef.value, {
-    x: horizontal * 10,
-    y: vertical * 5,
-    rotate: horizontal * 3,
-    duration: 0.22,
+    x: horizontal * 4,
+    y: vertical * 2,
+    rotate: horizontal * 1.1,
+    duration: 0.28,
     ease: 'power3.out',
     overwrite: 'auto',
   });
@@ -210,8 +228,8 @@ const pulseSatisfaction = () => {
     pulseRef.value,
     { scale: 1, y: 0 },
     {
-      scale: 1.045,
-      y: -4,
+      scale: 1.018,
+      y: -1.5,
       duration: 0.14,
       yoyo: true,
       repeat: 1,
@@ -228,7 +246,7 @@ const startBreathing = () => {
 
   breathingTween?.kill();
   breathingTween = gsap.to(breathRef.value, {
-    scale: 1.03,
+    scale: 1.016,
     duration: 2,
     repeat: -1,
     yoyo: true,
@@ -319,8 +337,8 @@ const wakeUpAnimation = async () => {
       breathRef.value,
       { scale: 1, y: 0 },
       {
-        scale: 1.08,
-        y: -10,
+        scale: 1.032,
+        y: -4,
         duration: 0.28,
         ease: 'power2.out',
       },
@@ -408,7 +426,7 @@ const countPet = (point) => {
 };
 
 const beginStroke = (point) => {
-  if (!point || !isPointInsideStage(point)) {
+  if (!point || !isPointInsideCat(point)) {
     return;
   }
 
@@ -421,7 +439,19 @@ const beginStroke = (point) => {
 };
 
 const moveStroke = (point) => {
-  if (!isStroking || !lastPoint || !point || !isPointInsideStage(point)) {
+  if (!isStroking || !point) {
+    return;
+  }
+
+  if (!isPointInsideCat(point)) {
+    lastPoint = null;
+    strokeDistance = 0;
+    resetFollow();
+    return;
+  }
+
+  if (!lastPoint) {
+    lastPoint = point;
     return;
   }
 
@@ -570,7 +600,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   pointer-events: none;
   user-select: none;
-  filter: drop-shadow(0 26px 46px rgba(77, 49, 32, 0.18));
+  filter: drop-shadow(0 24px 44px rgba(180, 72, 125, 0.18));
 }
 
 .cat-image--sleeping {

@@ -55,18 +55,19 @@ defineProps({
   left: 50%;
   z-index: 6;
   width: min(440px, calc(100vw - 32px));
-  padding: 14px 16px 13px;
-  border: 1px solid rgba(108, 59, 82, 0.14);
+  padding: 16px 18px 15px;
+  border: 1px solid rgba(211, 92, 145, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.78);
-  box-shadow: 0 20px 60px rgba(91, 52, 70, 0.13);
+  background:
+    linear-gradient(180deg, rgba(255, 247, 252, 0.94), rgba(255, 239, 248, 0.9));
+  box-shadow: 0 22px 64px rgba(196, 76, 132, 0.16);
   transform: translateX(-50%);
   backdrop-filter: blur(16px);
 }
 
 .affinity__name {
   margin-bottom: 6px;
-  color: #8a4662;
+  color: #b34073;
   font-size: 0.86rem;
   font-weight: 800;
 }
@@ -80,7 +81,7 @@ defineProps({
 }
 
 .affinity__level {
-  color: #2f242c;
+  color: #33212b;
   font-size: 0.9rem;
 }
 
@@ -94,19 +95,19 @@ defineProps({
   margin: 11px 0 9px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(123, 84, 101, 0.16);
+  background: rgba(211, 146, 176, 0.24);
 }
 
 .affinity__meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #e96c8f, #f3a16f 48%, #77b99b);
+  background: linear-gradient(90deg, #f05b99, #ff8fbc 55%, #ffc4da);
   transition: width 220ms ease;
 }
 
 .affinity__meta {
-  color: #695763;
+  color: #7a5568;
   font-size: 0.76rem;
 }
 

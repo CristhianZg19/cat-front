@@ -37,49 +37,49 @@ defineProps({
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(42, 31, 39, 0.24);
+  background: rgba(80, 35, 58, 0.24);
   backdrop-filter: blur(12px);
 }
 
 .level-modal {
   width: min(430px, 100%);
   padding: 24px;
-  border: 1px solid rgba(112, 62, 86, 0.14);
+  border: 1px solid rgba(211, 92, 145, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.95);
-  box-shadow: 0 24px 90px rgba(61, 40, 51, 0.24);
+  background: rgba(255, 246, 251, 0.96);
+  box-shadow: 0 24px 90px rgba(194, 79, 132, 0.25);
   text-align: center;
   animation: level-in 330ms cubic-bezier(0.2, 0.78, 0.25, 1);
 }
 
 .level-modal__eyebrow {
   margin: 0 0 12px;
-  color: #d85f86;
+  color: #e84f91;
   font-size: 0.88rem;
   font-weight: 850;
 }
 
 .level-modal h2 {
   margin: 0;
-  color: #2f242c;
+  color: #33212b;
   font-size: clamp(1.45rem, 6vw, 2rem);
   letter-spacing: 0;
 }
 
 .level-modal__label {
   margin: 18px 0 8px;
-  color: #6c5a64;
+  color: #7a5568;
 }
 
 .level-modal strong {
   display: block;
-  color: #8a4662;
+  color: #b34073;
   font-size: clamp(1.2rem, 5vw, 1.55rem);
 }
 
 .level-modal__message {
   margin: 18px 0 22px;
-  color: #4d4048;
+  color: #5b3f4d;
   line-height: 1.55;
 }
 
@@ -88,11 +88,11 @@ defineProps({
   height: 48px;
   border: 0;
   border-radius: 8px;
-  background: #d85f86;
+  background: linear-gradient(135deg, #e84f91, #ff87b5);
   color: #fff;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(216, 95, 134, 0.26);
+  box-shadow: 0 12px 28px rgba(216, 95, 150, 0.3);
 }
 
 @keyframes level-in {

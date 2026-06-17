@@ -1,8 +1,8 @@
 :root {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #2f242c;
-  background: #f8edf2;
+  color: #33212b;
+  background: #fff0f7;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -21,7 +21,7 @@ body,
 }
 
 html {
-  background: #f8edf2;
+  background: #fff0f7;
 }
 
 body {
@@ -47,15 +47,17 @@ select {
   overflow-y: auto;
   padding: max(26px, env(safe-area-inset-top)) 14px max(30px, env(safe-area-inset-bottom));
   background:
-    linear-gradient(140deg, rgba(252, 226, 236, 0.94), rgba(218, 238, 244, 0.96) 52%, rgba(225, 241, 223, 0.95)),
-    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.42), transparent 48%);
+    linear-gradient(145deg, rgba(255, 219, 237, 0.96), rgba(255, 241, 248, 0.98) 44%, rgba(237, 226, 255, 0.9)),
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.68), transparent 34%),
+    radial-gradient(circle at 84% 92%, rgba(255, 192, 220, 0.44), transparent 36%);
   transition: background 700ms ease;
 }
 
 .app-shell--awake {
   background:
-    linear-gradient(142deg, rgba(253, 226, 237, 0.95), rgba(210, 235, 245, 0.96) 46%, rgba(223, 243, 219, 0.96)),
-    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.5), transparent 50%);
+    linear-gradient(142deg, rgba(255, 211, 232, 0.97), rgba(255, 241, 249, 0.98) 48%, rgba(235, 224, 255, 0.92)),
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.72), transparent 34%),
+    radial-gradient(circle at 86% 90%, rgba(255, 182, 215, 0.5), transparent 38%);
 }
 
 .app-shell--with-hud {
@@ -77,11 +79,11 @@ select {
   width: min(460px, calc(100vw - 32px));
   margin: 0;
   padding: 14px 18px;
-  border: 1px solid rgba(108, 59, 82, 0.12);
+  border: 1px solid rgba(203, 83, 137, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.82);
-  box-shadow: 0 18px 46px rgba(91, 52, 70, 0.16);
-  color: #2f242c;
+  background: rgba(255, 244, 250, 0.9);
+  box-shadow: 0 18px 46px rgba(194, 79, 132, 0.18);
+  color: #33212b;
   text-align: center;
   font-size: clamp(1rem, 3.8vw, 1.24rem);
   font-weight: 750;
@@ -102,11 +104,11 @@ select {
 
 .luna-toast {
   padding: 13px 14px;
-  border: 1px solid rgba(108, 59, 82, 0.12);
+  border: 1px solid rgba(203, 83, 137, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.88);
-  box-shadow: 0 16px 46px rgba(91, 52, 70, 0.16);
-  color: #2f242c;
+  background: rgba(255, 244, 250, 0.92);
+  box-shadow: 0 16px 46px rgba(194, 79, 132, 0.18);
+  color: #33212b;
   font-size: 0.92rem;
   font-weight: 760;
   backdrop-filter: blur(14px);

@@ -52,37 +52,37 @@ onMounted(async () => {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(42, 31, 39, 0.28);
+  background: rgba(80, 35, 58, 0.26);
   backdrop-filter: blur(12px);
 }
 
 .register-modal {
   width: min(390px, 100%);
   padding: 24px;
-  border: 1px solid rgba(112, 62, 86, 0.14);
+  border: 1px solid rgba(211, 92, 145, 0.18);
   border-radius: 8px;
-  background: rgba(255, 250, 253, 0.94);
-  box-shadow: 0 24px 90px rgba(61, 40, 51, 0.22);
+  background: rgba(255, 246, 251, 0.96);
+  box-shadow: 0 24px 90px rgba(194, 79, 132, 0.24);
   animation: modal-in 260ms cubic-bezier(0.2, 0.78, 0.25, 1);
 }
 
 .register-modal h1 {
   margin: 0 0 10px;
-  color: #2f242c;
+  color: #33212b;
   font-size: clamp(1.5rem, 7vw, 2rem);
   letter-spacing: 0;
 }
 
 .register-modal p {
   margin: 0 0 20px;
-  color: #6c5a64;
+  color: #7a5568;
   line-height: 1.5;
 }
 
 .register-modal label {
   display: block;
   margin-bottom: 7px;
-  color: #8a4662;
+  color: #b34073;
   font-size: 0.84rem;
   font-weight: 800;
 }
@@ -91,11 +91,11 @@ onMounted(async () => {
   width: 100%;
   height: 48px;
   padding: 0 14px;
-  border: 1px solid rgba(113, 70, 88, 0.22);
+  border: 1px solid rgba(211, 92, 145, 0.24);
   border-radius: 8px;
   outline: none;
   background: rgba(255, 255, 255, 0.82);
-  color: #2f242c;
+  color: #33212b;
 }
 
 .register-modal input:focus {
@@ -109,11 +109,11 @@ onMounted(async () => {
   margin-top: 16px;
   border: 0;
   border-radius: 8px;
-  background: #d85f86;
+  background: linear-gradient(135deg, #e84f91, #ff87b5);
   color: #fff;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(216, 95, 134, 0.26);
+  box-shadow: 0 12px 28px rgba(216, 95, 150, 0.3);
 }
 
 .register-modal button:disabled {
