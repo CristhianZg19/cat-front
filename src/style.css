@@ -1,0 +1,162 @@
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #251f1a;
+  background: #f8e5d3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+html {
+  background: #f8e5d3;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  padding: max(26px, env(safe-area-inset-top)) 14px max(30px, env(safe-area-inset-bottom));
+  background:
+    linear-gradient(140deg, rgba(247, 222, 202, 0.94), rgba(218, 238, 244, 0.96) 52%, rgba(225, 241, 223, 0.95)),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.42), transparent 48%);
+  transition: background 700ms ease;
+}
+
+.app-shell--awake {
+  background:
+    linear-gradient(142deg, rgba(251, 226, 199, 0.95), rgba(210, 235, 245, 0.96) 46%, rgba(223, 243, 219, 0.96)),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.5), transparent 50%);
+}
+
+.app-shell--with-hud {
+  padding-top: max(128px, env(safe-area-inset-top));
+}
+
+.cat-message {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 7;
+  width: min(460px, calc(100vw - 32px));
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid rgba(68, 42, 28, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 250, 244, 0.76);
+  box-shadow: 0 18px 46px rgba(82, 53, 34, 0.16);
+  color: #2c241e;
+  text-align: center;
+  font-size: clamp(1rem, 3.8vw, 1.24rem);
+  font-weight: 750;
+  transform: translateX(-50%);
+  backdrop-filter: blur(16px);
+}
+
+.achievement-stack {
+  position: fixed;
+  right: 16px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 8;
+  display: grid;
+  gap: 10px;
+  width: min(320px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.achievement-toast {
+  padding: 13px 14px;
+  border: 1px solid rgba(70, 45, 31, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 251, 244, 0.86);
+  box-shadow: 0 16px 46px rgba(86, 58, 39, 0.16);
+  color: #2b231d;
+  font-size: 0.92rem;
+  font-weight: 760;
+  backdrop-filter: blur(14px);
+}
+
+.hud-enter-active,
+.hud-leave-active,
+.message-enter-active,
+.message-leave-active,
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.hud-enter-from,
+.hud-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -12px);
+}
+
+.message-enter-from,
+.message-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 12px);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(18px);
+}
+
+.toast-leave-active {
+  position: absolute;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    align-items: center;
+    padding-inline: 8px;
+  }
+
+  .achievement-stack {
+    right: 50%;
+    bottom: calc(max(20px, env(safe-area-inset-bottom)) + 66px);
+    transform: translateX(50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

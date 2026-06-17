@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.env
+.env.local
+vite-dev.*.log
+npm-debug.log*
