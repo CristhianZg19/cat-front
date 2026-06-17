@@ -1,11 +1,17 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { registerLunaPet, registerLunaUser } from '../services/catApi';
+import {
+  getLunaProgress,
+  registerLunaPet,
+  registerLunaUser,
+  syncLunaVisualState,
+} from '../services/catApi';
 import {
   getCurrentAffinityLevel,
   getNextAffinityLevel,
   getUnlockedLevelNumbers,
   getUnlockedMemoryIds,
+  INACTIVITY_SLEEP_MS,
   LUNA_MEMORIES,
   PETS_REQUIRED_TO_WAKE,
 } from '../domain/lunaAffinity';
@@ -13,11 +19,17 @@ import {
 const STORAGE_KEY = 'sleepy-cat-luna-state-v2';
 const LEGACY_STORAGE_KEY = 'sleepy-cat-state-v1';
 const BACKEND_THROTTLE_MS = 500;
+const STATE_SYNC_THROTTLE_MS = 500;
 
 let pendingBackendAffinity = 0;
 let backendFlushTimer = null;
 let lastBackendFlushAt = 0;
 let isBackendFlushRunning = false;
+let localSleepTimer = null;
+let pendingVisualState = null;
+let visualStateFlushTimer = null;
+let lastVisualStateFlushAt = 0;
+let isVisualStateFlushRunning = false;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -41,6 +53,20 @@ const readStorage = (key) => {
   }
 };
 
+const normalizeDate = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+};
+
 const loadState = () => {
   const state = readStorage(STORAGE_KEY);
 
@@ -59,7 +85,7 @@ const loadState = () => {
       Number(legacyState.totalPets) || 0,
       Number(legacyState.happiness) || 0,
     ),
-    catState: legacyState.catState,
+    catVisualState: legacyState.catState === 'awake' ? 'awake' : 'sleeping',
   };
 };
 
@@ -70,6 +96,8 @@ const saveState = (state) => {
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 };
+
+const getResponseProfile = (response) => response?.data ?? response?.profile ?? null;
 
 const normalizeServerProfile = (profile) => {
   if (!profile) {
@@ -83,6 +111,10 @@ const normalizeServerProfile = (profile) => {
     currentLevel: Number(profile.currentLevel) || 1,
     unlockedMemories: Array.isArray(profile.unlockedMemories) ? profile.unlockedMemories : [],
     unlockedLevels: Array.isArray(profile.unlockedLevels) ? profile.unlockedLevels : [],
+    catVisualState: profile.catVisualState === 'awake' ? 'awake' : 'sleeping',
+    lastActivityAt: normalizeDate(profile.lastActivityAt),
+    lastSleepAt: normalizeDate(profile.lastSleepAt),
+    lastWakeUpAt: normalizeDate(profile.lastWakeUpAt),
   };
 };
 
@@ -92,9 +124,11 @@ export const useCatStore = defineStore('cat', () => {
   const userName = ref(String(savedState.userName ?? '').trim());
   const deviceId = ref(savedState.deviceId || generateDeviceId());
   const affinityPoints = ref(Math.max(0, Number(savedState.affinityPoints) || 0));
-  const catState = ref(
-    savedState.catState === 'awake' || affinityPoints.value >= PETS_REQUIRED_TO_WAKE ? 'awake' : 'sleeping',
-  );
+  const catVisualState = ref(savedState.catVisualState === 'awake' ? 'awake' : 'sleeping');
+  const lastActivityAt = ref(normalizeDate(savedState.lastActivityAt));
+  const lastSleepAt = ref(normalizeDate(savedState.lastSleepAt));
+  const lastWakeUpAt = ref(normalizeDate(savedState.lastWakeUpAt));
+  const sleepNoticeCount = ref(0);
   const unlockedLevels = ref(
     Array.isArray(savedState.unlockedLevels)
       ? savedState.unlockedLevels
@@ -107,7 +141,7 @@ export const useCatStore = defineStore('cat', () => {
   );
 
   const isRegistered = computed(() => Boolean(userName.value && deviceId.value));
-  const isAwake = computed(() => catState.value === 'awake');
+  const isAwake = computed(() => catVisualState.value === 'awake');
   const hasInteracted = computed(() => affinityPoints.value > 0);
   const currentLevel = computed(() => getCurrentAffinityLevel(affinityPoints.value));
   const currentLevelNumber = computed(() => currentLevel.value.level);
@@ -134,7 +168,10 @@ export const useCatStore = defineStore('cat', () => {
       userName: userName.value,
       deviceId: deviceId.value,
       affinityPoints: affinityPoints.value,
-      catState: catState.value,
+      catVisualState: catVisualState.value,
+      lastActivityAt: lastActivityAt.value,
+      lastSleepAt: lastSleepAt.value,
+      lastWakeUpAt: lastWakeUpAt.value,
       unlockedLevels: unlockedLevels.value,
       unlockedMemoryIds: unlockedMemoryIds.value,
     });
@@ -167,7 +204,121 @@ export const useCatStore = defineStore('cat', () => {
       affinityPoints.value = normalizedProfile.affinityPoints;
     }
 
+    catVisualState.value = normalizedProfile.catVisualState;
+    lastActivityAt.value = normalizedProfile.lastActivityAt ?? lastActivityAt.value;
+    lastSleepAt.value = normalizedProfile.lastSleepAt ?? lastSleepAt.value;
+    lastWakeUpAt.value = normalizedProfile.lastWakeUpAt ?? lastWakeUpAt.value;
+
     applyLocalUnlocks();
+  };
+
+  const flushVisualState = async () => {
+    if (isVisualStateFlushRunning || !pendingVisualState || !isRegistered.value) {
+      return;
+    }
+
+    const state = pendingVisualState;
+    pendingVisualState = null;
+    isVisualStateFlushRunning = true;
+    lastVisualStateFlushAt = Date.now();
+
+    try {
+      const response = await syncLunaVisualState({
+        deviceId: deviceId.value,
+        catVisualState: state,
+      });
+
+      applyServerProfile(getResponseProfile(response));
+    } catch {
+      pendingVisualState = state;
+    } finally {
+      isVisualStateFlushRunning = false;
+
+      if (pendingVisualState) {
+        scheduleVisualStateFlush();
+      }
+    }
+  };
+
+  const scheduleVisualStateFlush = (immediate = false) => {
+    if (visualStateFlushTimer) {
+      return;
+    }
+
+    const delay = immediate
+      ? 0
+      : Math.max(0, STATE_SYNC_THROTTLE_MS - (Date.now() - lastVisualStateFlushAt));
+
+    visualStateFlushTimer = setTimeout(() => {
+      visualStateFlushTimer = null;
+      flushVisualState();
+    }, delay);
+  };
+
+  const queueVisualStateSync = (state, immediate = false) => {
+    if (!isRegistered.value || (state !== 'sleeping' && state !== 'awake')) {
+      return;
+    }
+
+    pendingVisualState = state;
+    scheduleVisualStateFlush(immediate);
+  };
+
+  const putLunaToSleep = ({ sync = true, notify = false } = {}) => {
+    if (catVisualState.value === 'sleeping') {
+      return;
+    }
+
+    catVisualState.value = 'sleeping';
+    lastSleepAt.value = new Date().toISOString();
+
+    if (sync) {
+      queueVisualStateSync('sleeping', true);
+    }
+
+    if (notify) {
+      sleepNoticeCount.value += 1;
+    }
+  };
+
+  const scheduleLocalSleep = () => {
+    if (localSleepTimer) {
+      clearTimeout(localSleepTimer);
+      localSleepTimer = null;
+    }
+
+    if (!isRegistered.value || catVisualState.value !== 'awake') {
+      return;
+    }
+
+    const lastActivityTime = lastActivityAt.value ? new Date(lastActivityAt.value).getTime() : Date.now();
+    const inactiveTime = Date.now() - lastActivityTime;
+    const delay = Math.max(0, INACTIVITY_SLEEP_MS - inactiveTime);
+
+    localSleepTimer = setTimeout(() => {
+      localSleepTimer = null;
+      putLunaToSleep({ sync: true, notify: true });
+    }, delay);
+  };
+
+  const registerVisualActivity = ({ sync = true } = {}) => {
+    if (!isRegistered.value) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const wasSleeping = catVisualState.value !== 'awake';
+
+    catVisualState.value = 'awake';
+    lastActivityAt.value = now;
+
+    if (wasSleeping) {
+      lastWakeUpAt.value = now;
+    }
+
+    if (sync) {
+      queueVisualStateSync('awake');
+    }
   };
 
   const flushBackendAffinity = async () => {
@@ -187,7 +338,7 @@ export const useCatStore = defineStore('cat', () => {
         count,
       });
 
-      applyServerProfile(response.profile);
+      applyServerProfile(getResponseProfile(response));
     } catch {
       pendingBackendAffinity += count;
     } finally {
@@ -217,6 +368,20 @@ export const useCatStore = defineStore('cat', () => {
     scheduleBackendFlush();
   };
 
+  const loadProgress = async () => {
+    if (!isRegistered.value) {
+      return false;
+    }
+
+    try {
+      const response = await getLunaProgress(deviceId.value);
+      applyServerProfile(getResponseProfile(response));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const registerUser = async (name) => {
     const cleanName = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
 
@@ -225,6 +390,7 @@ export const useCatStore = defineStore('cat', () => {
     }
 
     userName.value = cleanName;
+    lastActivityAt.value = lastActivityAt.value ?? new Date().toISOString();
     applyLocalUnlocks();
     persist();
 
@@ -235,7 +401,7 @@ export const useCatStore = defineStore('cat', () => {
         affinityPoints: affinityPoints.value,
       });
 
-      applyServerProfile(response.profile);
+      applyServerProfile(getResponseProfile(response));
     } catch {
       // Luna keeps the local friendship safe even if the server is unavailable.
     }
@@ -250,8 +416,11 @@ export const useCatStore = defineStore('cat', () => {
 
     const events = [];
     const previousLevel = currentLevel.value;
+    const wasSleeping = catVisualState.value !== 'awake';
 
+    registerVisualActivity({ sync: false });
     affinityPoints.value += 1;
+
     const newMemoryIds = getUnlockedMemoryIds(currentLevelNumber.value).filter(
       (memoryId) => !unlockedMemoryIds.value.includes(memoryId),
     );
@@ -259,8 +428,7 @@ export const useCatStore = defineStore('cat', () => {
     applyLocalUnlocks();
     queueBackendAffinity();
 
-    if (catState.value === 'sleeping' && affinityPoints.value >= PETS_REQUIRED_TO_WAKE) {
-      catState.value = 'awake';
+    if (wasSleeping) {
       events.push({
         type: 'wake',
         message: `Miau... ya reconozco tus caricias, ${userName.value}. Me siento tranquila contigo.`,
@@ -289,19 +457,37 @@ export const useCatStore = defineStore('cat', () => {
   };
 
   watch(
-    [userName, deviceId, affinityPoints, catState, unlockedLevels, unlockedMemoryIds],
+    [
+      userName,
+      deviceId,
+      affinityPoints,
+      catVisualState,
+      lastActivityAt,
+      lastSleepAt,
+      lastWakeUpAt,
+      unlockedLevels,
+      unlockedMemoryIds,
+    ],
     persist,
     { deep: true },
   );
 
+  watch([isRegistered, catVisualState, lastActivityAt], scheduleLocalSleep, { immediate: true });
+
   applyLocalUnlocks();
 
   return {
+    INACTIVITY_SLEEP_MS,
     PETS_REQUIRED_TO_WAKE,
     userName,
     deviceId,
     affinityPoints,
-    catState,
+    catVisualState,
+    catState: catVisualState,
+    lastActivityAt,
+    lastSleepAt,
+    lastWakeUpAt,
+    sleepNoticeCount,
     unlockedLevels,
     unlockedMemories,
     isRegistered,
@@ -313,7 +499,10 @@ export const useCatStore = defineStore('cat', () => {
     nextLevel,
     progressToNextLevel,
     remainingAffinityToWake,
+    loadProgress,
+    putLunaToSleep,
     registerUser,
+    registerVisualActivity,
     registerAffinityInteraction,
   };
 });

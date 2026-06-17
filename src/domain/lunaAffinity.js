@@ -1,4 +1,5 @@
 export const PETS_REQUIRED_TO_WAKE = 30;
+export const INACTIVITY_SLEEP_MS = 60 * 60 * 1000;
 
 export const LUNA_AFFINITY_LEVELS = [
   {

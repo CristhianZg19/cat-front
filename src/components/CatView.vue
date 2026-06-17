@@ -334,6 +334,45 @@ const wakeUpAnimation = async () => {
     });
 };
 
+const sleepAnimation = async () => {
+  await nextTick();
+  clearBlinkTimer();
+
+  gsap
+    .timeline({
+      onComplete: startBreathing,
+    })
+    .to(
+      awakeImageRef.value,
+      {
+        autoAlpha: 0,
+        duration: 0.8,
+        ease: 'power2.out',
+      },
+      0,
+    )
+    .to(
+      sleepingImageRef.value,
+      {
+        autoAlpha: 1,
+        duration: 0.8,
+        ease: 'power2.out',
+      },
+      0,
+    )
+    .to(
+      breathRef.value,
+      {
+        scale: 1,
+        y: 0,
+        rotate: 0,
+        duration: 0.28,
+        ease: 'power2.out',
+      },
+      0,
+    );
+};
+
 const dispatchStoreEvents = (events) => {
   events.forEach((event) => {
     if (event.message) {
@@ -373,6 +412,7 @@ const beginStroke = (point) => {
     return;
   }
 
+  store.registerVisualActivity({ sync: true });
   isStroking = true;
   lastPoint = point;
   strokeDistance = 0;
@@ -393,6 +433,7 @@ const moveStroke = (point) => {
 
   strokeDistance += distance;
   lastPoint = point;
+  store.registerVisualActivity({ sync: false });
   applyFollow(point);
 
   if (strokeDistance >= STROKE_DISTANCE_REQUIRED && Date.now() - lastPetAt >= STROKE_INTERVAL_REQUIRED) {
@@ -472,7 +513,7 @@ watch(
     if (state === 'awake') {
       wakeUpAnimation();
     } else {
-      startBreathing();
+      sleepAnimation();
     }
   },
 );

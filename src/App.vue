@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AffinityBar from './components/AffinityBar.vue';
 import CatView from './components/CatView.vue';
 import LevelUpModal from './components/LevelUpModal.vue';
@@ -114,4 +114,17 @@ const showLevelUp = (level) => {
 const showMemoryToast = () => {
   showToast('🌙 Te compartí un recuerdo nuevo');
 };
+
+onMounted(() => {
+  store.loadProgress();
+});
+
+watch(
+  () => store.sleepNoticeCount,
+  (noticeCount, previousNoticeCount) => {
+    if (noticeCount > previousNoticeCount) {
+      showMessage('🌙 Luna volvió a quedarse dormidita...');
+    }
+  },
+);
 </script>

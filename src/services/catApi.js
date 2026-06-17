@@ -14,3 +14,13 @@ export const registerLunaPet = async (payload) => {
   const { data } = await catApi.post('/api/cat/pet', payload);
   return data;
 };
+
+export const getLunaProgress = async (deviceId) => {
+  const { data } = await catApi.get(`/api/cat/progress/${encodeURIComponent(deviceId)}`);
+  return data;
+};
+
+export const syncLunaVisualState = async (payload) => {
+  const { data } = await catApi.patch('/api/cat/state', payload);
+  return data;
+};
