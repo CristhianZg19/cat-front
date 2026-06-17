@@ -3,9 +3,25 @@
     <h2 id="luna-memories-title">📖 Recuerdos de Luna</h2>
 
     <div class="memories__list">
-      <article v-for="memory in memories" :key="memory.id" class="memory">
-        <span>Nivel {{ memory.level }}</span>
-        <p>{{ memory.text }}</p>
+      <article
+        v-for="memory in memories"
+        :key="memory.id"
+        class="memory"
+        :class="{ 'memory--featured': memory.image }"
+      >
+        <img
+          v-if="memory.image"
+          class="memory__image"
+          :src="memory.image"
+          :alt="memory.imageAlt || memory.title || 'Recuerdo de Luna'"
+          loading="lazy"
+        />
+
+        <div class="memory__content">
+          <span>Nivel {{ memory.level }}</span>
+          <h3 v-if="memory.title">{{ memory.title }}</h3>
+          <p>{{ memory.text }}</p>
+        </div>
       </article>
     </div>
   </section>
@@ -51,10 +67,38 @@ defineProps({
   box-shadow: inset 0 0 0 1px rgba(211, 92, 145, 0.08);
 }
 
+.memory--featured {
+  display: grid;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(255, 250, 253, 0.82);
+}
+
+.memory__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+  object-position: center;
+  box-shadow: 0 12px 32px rgba(127, 69, 98, 0.16);
+}
+
+.memory__content {
+  padding: 2px;
+}
+
 .memory span {
   color: #b34073;
   font-size: 0.75rem;
   font-weight: 800;
+}
+
+.memory h3 {
+  margin: 5px 0 0;
+  color: #33212b;
+  font-size: 0.96rem;
+  line-height: 1.25;
 }
 
 .memory p {

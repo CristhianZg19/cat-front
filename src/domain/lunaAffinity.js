@@ -1,3 +1,5 @@
+import lunaMamaImage from '../assets/luna-mama.jpg';
+
 export const PETS_REQUIRED_TO_WAKE = 30;
 export const INACTIVITY_SLEEP_MS = 60 * 60 * 1000;
 
@@ -18,7 +20,7 @@ export const LUNA_AFFINITY_LEVELS = [
     level: 3,
     title: 'Compañera de Bigotes 🐱',
     required: 60,
-    message: 'Tus caricias empiezan a convertirse en uno de mis momentos favoritos.',
+    message: 'Quiero presentarte a mi mamá. Ya no está conmigo, pero cuando me acaricias con tanta ternura siento que su amor todavía me acompaña.',
   },
   {
     level: 4,
@@ -66,9 +68,13 @@ export const LUNA_AFFINITY_LEVELS = [
 
 export const LUNA_MEMORIES = [
   {
-    id: 'little-shadow-chaser',
+    id: 'luna-mama',
     level: 3,
-    text: 'Cuando era pequeña me gustaba perseguir sombras por toda la casa.',
+    title: 'Te presento a mi mamá',
+    text: 'Ella ya no está conmigo, pero la llevo en mis recuerdos más suaves. Cuando me acompañas con cariño, siento un poquito de la calma que ella me dejó.',
+    image: lunaMamaImage,
+    imageAlt: 'Mamá de Luna',
+    activeLevelOnly: true,
   },
   {
     id: 'safe-sleeping-place',
@@ -102,5 +108,8 @@ export const getNextAffinityLevel = (currentLevelNumber) =>
 export const getUnlockedLevelNumbers = (affinityPoints = 0) =>
   LUNA_AFFINITY_LEVELS.filter((level) => affinityPoints >= level.required).map((level) => level.level);
 
+const isMemoryVisibleAtLevel = (memory, currentLevelNumber) =>
+  memory.activeLevelOnly ? currentLevelNumber === memory.level : currentLevelNumber >= memory.level;
+
 export const getUnlockedMemoryIds = (currentLevelNumber = 1) =>
-  LUNA_MEMORIES.filter((memory) => currentLevelNumber >= memory.level).map((memory) => memory.id);
+  LUNA_MEMORIES.filter((memory) => isMemoryVisibleAtLevel(memory, currentLevelNumber)).map((memory) => memory.id);
