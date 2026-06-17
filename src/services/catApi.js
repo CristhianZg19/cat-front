@@ -24,3 +24,8 @@ export const syncLunaVisualState = async (payload) => {
   const { data } = await catApi.patch('/api/cat/state', payload);
   return data;
 };
+
+export const resetLunaProgress = async (payload) => {
+  const { data } = await catApi.post('/api/cat/reset', payload);
+  return data;
+};

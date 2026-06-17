@@ -4,6 +4,7 @@ import {
   getLunaProgress,
   registerLunaPet,
   registerLunaUser,
+  resetLunaProgress,
   syncLunaVisualState,
 } from '../services/catApi';
 import {
@@ -30,6 +31,7 @@ let pendingVisualState = null;
 let visualStateFlushTimer = null;
 let lastVisualStateFlushAt = 0;
 let isVisualStateFlushRunning = false;
+let syncGeneration = 0;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -95,6 +97,14 @@ const saveState = (state) => {
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+};
+
+const clearTimer = (timer) => {
+  if (timer) {
+    clearTimeout(timer);
+  }
+
+  return null;
 };
 
 const getResponseProfile = (response) => response?.data ?? response?.profile ?? null;
@@ -185,7 +195,7 @@ export const useCatStore = defineStore('cat', () => {
     unlockedMemoryIds.value = nextUnlockedMemories;
   };
 
-  const applyServerProfile = (profile) => {
+  const applyServerProfile = (profile, { force = false } = {}) => {
     const normalizedProfile = normalizeServerProfile(profile);
 
     if (!normalizedProfile) {
@@ -200,7 +210,7 @@ export const useCatStore = defineStore('cat', () => {
       deviceId.value = normalizedProfile.deviceId;
     }
 
-    if (normalizedProfile.affinityPoints > affinityPoints.value) {
+    if (force || normalizedProfile.affinityPoints > affinityPoints.value) {
       affinityPoints.value = normalizedProfile.affinityPoints;
     }
 
@@ -221,6 +231,7 @@ export const useCatStore = defineStore('cat', () => {
     pendingVisualState = null;
     isVisualStateFlushRunning = true;
     lastVisualStateFlushAt = Date.now();
+    const generation = syncGeneration;
 
     try {
       const response = await syncLunaVisualState({
@@ -228,15 +239,45 @@ export const useCatStore = defineStore('cat', () => {
         catVisualState: state,
       });
 
-      applyServerProfile(getResponseProfile(response));
+      if (generation === syncGeneration) {
+        applyServerProfile(getResponseProfile(response));
+      }
     } catch {
-      pendingVisualState = state;
+      if (generation === syncGeneration) {
+        pendingVisualState = state;
+      }
     } finally {
       isVisualStateFlushRunning = false;
 
       if (pendingVisualState) {
         scheduleVisualStateFlush();
       }
+    }
+  };
+
+  const clearPendingSync = () => {
+    syncGeneration += 1;
+    pendingBackendAffinity = 0;
+    backendFlushTimer = clearTimer(backendFlushTimer);
+    isBackendFlushRunning = false;
+    pendingVisualState = null;
+    visualStateFlushTimer = clearTimer(visualStateFlushTimer);
+    isVisualStateFlushRunning = false;
+  };
+
+  const applyResetProfile = (profile = null) => {
+    const now = new Date().toISOString();
+
+    affinityPoints.value = 0;
+    catVisualState.value = 'sleeping';
+    lastActivityAt.value = now;
+    lastSleepAt.value = now;
+    lastWakeUpAt.value = null;
+    unlockedLevels.value = getUnlockedLevelNumbers(0);
+    unlockedMemoryIds.value = getUnlockedMemoryIds(1);
+
+    if (profile) {
+      applyServerProfile(profile, { force: true });
     }
   };
 
@@ -330,6 +371,7 @@ export const useCatStore = defineStore('cat', () => {
     pendingBackendAffinity = 0;
     isBackendFlushRunning = true;
     lastBackendFlushAt = Date.now();
+    const generation = syncGeneration;
 
     try {
       const response = await registerLunaPet({
@@ -338,9 +380,13 @@ export const useCatStore = defineStore('cat', () => {
         count,
       });
 
-      applyServerProfile(getResponseProfile(response));
+      if (generation === syncGeneration) {
+        applyServerProfile(getResponseProfile(response));
+      }
     } catch {
-      pendingBackendAffinity += count;
+      if (generation === syncGeneration) {
+        pendingBackendAffinity += count;
+      }
     } finally {
       isBackendFlushRunning = false;
 
@@ -407,6 +453,26 @@ export const useCatStore = defineStore('cat', () => {
     }
 
     return true;
+  };
+
+  const resetProgress = async () => {
+    if (!isRegistered.value) {
+      return false;
+    }
+
+    clearPendingSync();
+
+    try {
+      const response = await resetLunaProgress({
+        deviceId: deviceId.value,
+      });
+
+      applyResetProfile(getResponseProfile(response));
+      persist();
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const registerAffinityInteraction = () => {
@@ -502,6 +568,7 @@ export const useCatStore = defineStore('cat', () => {
     loadProgress,
     putLunaToSleep,
     registerUser,
+    resetProgress,
     registerVisualActivity,
     registerAffinityInteraction,
   };
